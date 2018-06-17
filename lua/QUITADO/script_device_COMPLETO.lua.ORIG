@@ -1,0 +1,31 @@
+#!/usr/bin/lua
+commandArray = {}
+if (devicechanged['COMPLETO'] == 'On') then
+	local mintRiego = uservariables["TIEMPO-RIEGO"]
+	local sectRiego = mintRiego * 60
+	local onStr = 'On FOR ' .. mintRiego
+
+	print('COMENZANDO RIEGO COMPLETO')
+	--Abrimos la valvula general
+	commandArray['EV-GENERAL'] = 'On FOR ' .. 5*mintRiego
+	commandArray['EV-GOTEOBAJO']= onStr
+        commandArray['EV-GOTEOALTO'] = onStr .. " AFTER " .. sectRiego
+	commandArray['EV-TURBINAS'] = onStr .. " AFTER " .. 2*sectRiego
+	commandArray['EV-PORCHE'] = onStr .. " AFTER " .. 3*sectRiego
+	commandArray['EV-CUARTILLO'] = onStr .. " AFTER " .. 4*sectRiego
+	commandArray['COMPLETO'] = 'Off AFTER ' .. 5*sectRiego
+end
+
+if (devicechanged['COMPLETO'] == 'Off') then
+	-- Paramos
+	print('PARADA FORZADA DE RIEGO COMPLETO')
+	commandArray['EV-GENERAL'] = 'Off'
+	commandArray['EV-GOTEOBAJO']= 'Off'
+	commandArray['EV-GOTEOALTO']= 'Off'
+	commandArray['EV-TURBINAS']= 'Off'
+	commandArray['EV-PORCHE']= 'Off'
+	commandArray['EV-CUARTILLO']= 'Off'
+end
+
+return commandArray
+
