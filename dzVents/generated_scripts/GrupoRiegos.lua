@@ -1,6 +1,6 @@
 -- Variables de control
 nriegosCESPED = 4
-nriegosGOTEOS = 4
+nriegosGOTEOS = 5
 abreGeneral = true
 
 -- Funciones
@@ -15,7 +15,8 @@ local function RiegaGoteos(domoticz,delay,tRiego,tPatio)
     domoticz.devices('EV-GOTEOBAJO').switchOn().afterMin(delay).forMin(tRiego)
     domoticz.devices('EV-GOTEOALTO').switchOn().afterMin(tRiego + delay).forMin(tRiego)
     domoticz.devices('EV-GOTEOOLIVO').switchOn().afterMin(2*tRiego + delay).forMin(tRiego)
-    domoticz.devices('EV-PATIO').switchOn().afterMin(3*tRiego + delay).forMin(tPatio)
+    domoticz.devices('EV-ROCALLA').switchOn().afterMin(3*tRiego + delay).forMin(tRiego)
+    domoticz.devices('EV-PATIO').switchOn().afterMin(4*tRiego + delay).forMin(tPatio)
 end
 
 local function TerminaCesped(domoticz)
@@ -29,6 +30,7 @@ local function TerminaGoteos(domoticz)
     domoticz.devices('EV-GOTEOBAJO').switchOff()
     domoticz.devices('EV-GOTEOALTO').switchOff()
     domoticz.devices('EV-GOTEOOLIVO').switchOff()
+    domoticz.devices('EV-ROCALLA').switchOff()
     domoticz.devices('EV-PATIO').switchOff()
 end
 
@@ -71,8 +73,13 @@ return {
 	    if(boton.state == 'On' and domoticz.data.semaforo) then
 	        -- Mandamos la notificacion
 	        domoticz.notify('RIEGOERROR','*Riego ' .. boton.name .. ' no activado por bloqueo de semaforo*',domoticz.PRIORITY_HIGH)
-	        domoticz.data.offInterno = true
-            boton.switchOff()
+	        -- Comprobamos que no es un "rebote" por programacion
+	        if(not domoticz.data.estado[boton.name]) then
+	            domoticz.data.offInterno = true
+                boton.switchOff()
+            else
+                domoticz.notify('RIEGOINFO','*Riego ' .. boton.name .. ' debia ser una programacion de un riego lanzado a mano antes*',domoticz.PRIORITY_HIGH)
+            end
 	    elseif(boton.state == 'On') then
 	        -- Mandamos la notificacion
 	        domoticz.notify('RIEGOON','*Riego ' .. boton.name .. ' comenzado*',domoticz.PRIORITY_HIGH)
